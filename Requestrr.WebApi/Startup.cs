@@ -32,6 +32,7 @@ using Microsoft.AspNetCore.Http.Features;
 using Requestrr.WebApi.RequestrrBot.DownloadClients.Lidarr;
 using Requestrr.WebApi.RequestrrBot.Music;
 using Requestrr.WebApi.RequestrrBot.Books;
+using Requestrr.WebApi.RequestrrBot.DownloadClients.Readarr;
 
 namespace Requestrr.WebApi
 {
@@ -108,6 +109,7 @@ namespace Requestrr.WebApi
             services.AddSingleton<RadarrSettingsProvider>();
             services.AddSingleton<SonarrSettingsProvider>();
             services.AddSingleton<LidarrSettingsProvider>();
+            services.AddSingleton<ReadarrSettingsProvider>();
             services.AddSingleton<RequestrrBot.ChatBot>();
         }
 
