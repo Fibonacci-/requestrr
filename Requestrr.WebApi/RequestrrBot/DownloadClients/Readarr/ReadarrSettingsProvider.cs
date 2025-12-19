@@ -8,23 +8,15 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Readarr
 
             return new ReadarrSettings
             {
-                BaseUrl = settings.DownloadClients.Readarr.BaseUrl,
-                ApiKey = settings.DownloadClients.Readarr.ApiKey,
                 Hostname = settings.DownloadClients.Readarr.Hostname,
-                Port = settings.DownloadClients.Readarr.Port,
-                UseSSL = settings.DownloadClients.Readarr.UseSSL,
-                Version = settings.DownloadClients.Readarr.Version,
+                BaseUrl = settings.DownloadClients.Readarr.BaseUrl,
+                Port = (int)settings.DownloadClients.Readarr.Port,
+                ApiKey = settings.DownloadClients.Readarr.ApiKey,
+                Categories = settings.DownloadClients.Readarr.Categories.ToObject<ReadarrCategory[]>(),
                 SearchNewRequests = settings.DownloadClients.Readarr.SearchNewRequests,
                 MonitorNewRequests = settings.DownloadClients.Readarr.MonitorNewRequests,
-                Categories = System.Array.ConvertAll<dynamic, ReadarrCategory>(settings.DownloadClients.Readarr.Categories.ToObject<dynamic[]>(), new System.Converter<dynamic, ReadarrCategory>(x => new ReadarrCategory
-                {
-                    Id = x.Id,
-                    Name = x.Name,
-                    ProfileId = x.ProfileId,
-                    MetadataProfileId = x.MetadataProfileId,
-                    RootFolder = x.RootFolder,
-                    Tags = System.Array.ConvertAll<dynamic, string>(x.Tags.ToObject<dynamic[]>(), new System.Converter<dynamic, string>(t => (string)t)),
-                }))
+                UseSSL = (bool)settings.DownloadClients.Readarr.UseSSL,
+                Version = settings.DownloadClients.Readarr.Version
             };
         }
     }
