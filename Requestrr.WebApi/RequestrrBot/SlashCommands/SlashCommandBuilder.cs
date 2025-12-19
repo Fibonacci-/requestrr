@@ -19,6 +19,7 @@ using Requestrr.WebApi.RequestrrBot.DownloadClients.Ombi;
 using Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr;
 using Requestrr.WebApi.RequestrrBot.DownloadClients.Radarr;
 using Requestrr.WebApi.RequestrrBot.DownloadClients.Sonarr;
+using Requestrr.WebApi.RequestrrBot.DownloadClients.Readarr;
 using Requestrr.WebApi.RequestrrBot.Locale;
 
 namespace Requestrr.WebApi.RequestrrBot
@@ -27,7 +28,7 @@ namespace Requestrr.WebApi.RequestrrBot
     {
         public enum CommandType
         {
-            Misc, Movie, Tv, IssueMovie, IssueTv, Music
+            Misc, Movie, Tv, IssueMovie, IssueTv, Music, Book
         }
 
         private static Dictionary<CommandType, List<string>> _commandList = new Dictionary<CommandType, List<string>>();
@@ -39,9 +40,9 @@ namespace Requestrr.WebApi.RequestrrBot
 
         public static Dictionary<CommandType, List<string>> CommandList { get => _commandList; }
 
-        public static Type Build(ILogger logger, DiscordSettings settings, RadarrSettingsProvider radarrSettingsProvider, SonarrSettingsProvider sonarrSettingsProvider, OverseerrSettingsProvider overseerrSettingsProvider, OmbiSettingsProvider ombiSettingsProvider, LidarrSettingsProvider lidarrSettingsProvider)
+        public static Type Build(ILogger logger, DiscordSettings settings, RadarrSettingsProvider radarrSettingsProvider, SonarrSettingsProvider sonarrSettingsProvider, OverseerrSettingsProvider overseerrSettingsProvider, OmbiSettingsProvider ombiSettingsProvider, LidarrSettingsProvider lidarrSettingsProvider, ReadarrSettingsProvider readarrSettingsProvider)
         {
-            string code = GetCode(settings, radarrSettingsProvider.Provide(), sonarrSettingsProvider.Provide(), overseerrSettingsProvider.Provide(), ombiSettingsProvider.Provide(), lidarrSettingsProvider.Provider());
+            string code = GetCode(settings, radarrSettingsProvider.Provide(), sonarrSettingsProvider.Provide(), overseerrSettingsProvider.Provide(), ombiSettingsProvider.Provide(), lidarrSettingsProvider.Provider(), readarrSettingsProvider.Provide());
             var tree = SyntaxFactory.ParseSyntaxTree(code);
             string fileName = $"{DLLFileName}-{Guid.NewGuid()}.dll";
 
@@ -97,7 +98,7 @@ namespace Requestrr.WebApi.RequestrrBot
             throw new Exception("Failed to build SlashCommands assembly.");
         }
 
-        private static string GetCode(DiscordSettings settings, RadarrSettings radarrSettings, SonarrSettings sonarrSettings, OverseerrSettings overseerrSettings, OmbiSettings ombiSettings, LidarrSettings lidarrSettings)
+        private static string GetCode(DiscordSettings settings, RadarrSettings radarrSettings, SonarrSettings sonarrSettings, OverseerrSettings overseerrSettings, OmbiSettings ombiSettings, LidarrSettings lidarrSettings, ReadarrSettings readarrSettings)
         {
             //Build a list of commands being created
             _commandList = new Dictionary<CommandType, List<string>>
@@ -107,6 +108,7 @@ namespace Requestrr.WebApi.RequestrrBot
                 { CommandType.IssueMovie, new List<string>() },
                 { CommandType.IssueTv, new List<string>() },
                 { CommandType.Music, new List<string>() },
+                { CommandType.Book, new List<string>() },
                 { CommandType.Misc, new List<string>() }
             };
             var code = File.ReadAllText(Program.CombindPath("SlashCommands.txt"));
@@ -133,6 +135,9 @@ namespace Requestrr.WebApi.RequestrrBot
             code = code.Replace("[REQUEST_MUSIC_ARTIST_OPTION_NAME]", Language.Current.DiscordCommandMusicRequestArtistOptionName);
             code = code.Replace("[REQUEST_MUSIC_ARTIST_OPTION_DESCRIPTION]", Language.Current.DiscordCommandMusicRequestArtistOptionDescription);
 
+            code = code.Replace("[REQUEST_BOOK_TITLE_DESCRIPTION]", Language.Current.DiscordCommandBookRequestTitleDescription);
+            code = code.Replace("[REQUEST_BOOK_TITLE_OPTION_NAME]", Language.Current.DiscordCommandBookRequestTitleOptionName);
+            code = code.Replace("[REQUEST_BOOK_TITLE_OPTION_DESCRIPTION]", Language.Current.DiscordCommandBookRequestTitleOptionDescription);
 
             code = code.Replace("[REQUEST_PING_NAME]", Language.Current.DiscordCommandPingRequestName);
             code = code.Replace("[REQUEST_PING_DESCRIPTION]", Language.Current.DiscordCommandPingRequestDescription);
@@ -142,6 +147,7 @@ namespace Requestrr.WebApi.RequestrrBot
             code = code.Replace("[REQUIRED_MOVIE_ROLE_IDS]", string.Join(",", settings.MovieRoles.Select(x => $"{x}UL")));
             code = code.Replace("[REQUIRED_TV_ROLE_IDS]", string.Join(",", settings.TvShowRoles.Select(x => $"{x}UL")));
             code = code.Replace("[REQUIRED_MUSIC_ROLE_IDS]", string.Join(",", settings.MusicRoles.Select(x => $"{x}UL")));
+            code = code.Replace("[REQUIRED_BOOK_ROLE_IDS]", string.Join(",", settings.BookRoles.Select(x => $"{x}UL")));
             code = code.Replace("[REQUIRED_CHANNEL_IDS]", string.Join(",", settings.MonitoredChannels.Select(x => $"{x}UL")));
 
 
@@ -172,7 +178,7 @@ namespace Requestrr.WebApi.RequestrrBot
             code = code.Replace("[ISSUE_TV_TVDB_OPTION_DESCRIPTION]", Language.Current.DiscordCommandTvIssueTvdbOptionDescription);
 
 
-            if (settings.MovieDownloadClient == DownloadClient.Disabled && settings.TvShowDownloadClient == DownloadClient.Disabled && settings.MusicDownloadClient == DownloadClient.Disabled)
+            if (settings.MovieDownloadClient == DownloadClient.Disabled && settings.TvShowDownloadClient == DownloadClient.Disabled && settings.MusicDownloadClient == DownloadClient.Disabled && settings.BookDownloadClient == DownloadClient.Disabled)
             {
                 var beginIndex = code.IndexOf("[REQUEST_COMMAND_START]");
                 var endIndex = code.IndexOf("[REQUEST_COMMAND_END]") + "[REQUEST_COMMAND_END]".Length;
@@ -181,6 +187,7 @@ namespace Requestrr.WebApi.RequestrrBot
                 _commandList.Remove(CommandType.Movie);
                 _commandList.Remove(CommandType.Tv);
                 _commandList.Remove(CommandType.Music);
+                _commandList.Remove(CommandType.Book);
             }
             else
             {
@@ -259,6 +266,22 @@ namespace Requestrr.WebApi.RequestrrBot
                 {
                     code = GenerateMusicCategories(lidarrSettings.Categories.Select(x => new Category { Id = x.Id, Name = x.Name }).ToArray(), code, _commandList[CommandType.Music], request);
                 }
+
+                if (settings.BookDownloadClient == DownloadClient.Disabled)
+                {
+                    int beginIndex = code.IndexOf("[BOOK_COMMAND_START]");
+                    int endIndex = code.IndexOf("[BOOK_COMMAND_END]") + "[BOOK_COMMAND_END]".Length;
+
+                    code = code.Replace(code.Substring(beginIndex, endIndex - beginIndex), string.Empty);
+                    _commandList.Remove(CommandType.Book);
+                }
+                else
+                {
+                    code = GenerateBookCategories(readarrSettings.Categories.Select(x => new Category { Id = x.Id, Name = x.Name }).ToArray(), code, _commandList[CommandType.Book], request);
+                }
+
+                code = code.Replace("[BOOK_COMMAND_START]", string.Empty);
+                code = code.Replace("[BOOK_COMMAND_END]", string.Empty);
 
                 code = code.Replace("[REQUEST_COMMAND_START]", string.Empty);
                 code = code.Replace("[REQUEST_COMMAND_END]", string.Empty);
@@ -427,6 +450,16 @@ namespace Requestrr.WebApi.RequestrrBot
             return GenerateCategories(start, end, string.Empty, string.Empty, categoryId, slashName, string.Empty, string.Empty, categories, code, commandList, slashCommand);
         }
 
+        private static string GenerateBookCategories(Category[] categories, string code, List<string> commandList, string slashCommand)
+        {
+            string start = "[BOOK_COMMAND_START]";
+            string end = "[BOOK_COMMAND_END]";
+            string categoryId = "[BOOK_CATEGORY_ID]";
+            string slashName = "[REQUEST_BOOK_TITLE_NAME]";
+
+            return GenerateCategories(start, end, string.Empty, string.Empty, categoryId, slashName, string.Empty, string.Empty, categories, code, commandList, slashCommand);
+        }
+
 
         private static string GenerateTvShowIssueCategories(Category[] categories, string code, List<string> commandList, string slashCommand, bool dbOption)
         {
@@ -485,7 +518,7 @@ namespace Requestrr.WebApi.RequestrrBot
         {
             try
             {
-                if(!Directory.Exists(TempFolder))
+                if (!Directory.Exists(TempFolder))
                     return;
 
                 var dirInfo = new DirectoryInfo(Directory.GetCurrentDirectory());

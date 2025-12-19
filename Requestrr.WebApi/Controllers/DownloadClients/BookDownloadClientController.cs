@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Requestrr.WebApi.config;
 using Requestrr.WebApi.Controllers.DownloadClients.Readarr;
+using Requestrr.WebApi.RequestrrBot.DownloadClients.Lidarr;
 using Requestrr.WebApi.RequestrrBot.DownloadClients;
 using Requestrr.WebApi.RequestrrBot.DownloadClients.Radarr;
 using Requestrr.WebApi.RequestrrBot.DownloadClients.Sonarr;
@@ -22,23 +23,26 @@ namespace Requestrr.WebApi.Controllers.DownloadClients
     [Route("/api/book")]
     public class BookDownloadClientController : ControllerBase
     {
-        private readonly BookSettings _bookSettings;
         private readonly MoviesSettings _moviesSettings;
         private readonly TvShowsSettings _tvShowsSettings;
+        private readonly MusicSettings _musicSettings;
+        private readonly BookSettings _bookSettings;
         private readonly DownloadClientsSettings _downloadClientsSettings;
         private readonly IHttpClientFactory _httpClientFactory;
 
         public BookDownloadClientController(
             IHttpClientFactory httpClientFactory,
-            BookSettingsProvider bookSettingsProvider,
             MoviesSettingsProvider moviesSettingsProvider,
             TvShowsSettingsProvider tvShowsSettingsProvider,
+            MusicSettingsProvider musicSettingsProvider,
+            BookSettingsProvider bookSettingsProvider,
             DownloadClientsSettingsProvider downloadClientsSettingsProvider)
         {
             _httpClientFactory = httpClientFactory;
-            _bookSettings = bookSettingsProvider.Provide();
             _moviesSettings = moviesSettingsProvider.Provide();
             _tvShowsSettings = tvShowsSettingsProvider.Provide();
+            _musicSettings = musicSettingsProvider.Provide();
+            _bookSettings = bookSettingsProvider.Provide();
             _downloadClientsSettings = downloadClientsSettingsProvider.Provide();
         }
 
@@ -86,6 +90,16 @@ namespace Requestrr.WebApi.Controllers.DownloadClients
                     break;
                 case "Ombi":
                     otherCategories.Add(Language.Current.DiscordCommandTvRequestTitleName.ToLower());
+                    break;
+            }
+
+            switch (_musicSettings.Client)
+            {
+                case "Lidarr":
+                    foreach (LidarrCategory category in _downloadClientsSettings.Lidarr.Categories)
+                    {
+                        otherCategories.Add(category.Name.ToLower());
+                    }
                     break;
             }
 

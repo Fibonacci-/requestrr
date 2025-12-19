@@ -14,6 +14,7 @@ using Requestrr.WebApi.RequestrrBot.DownloadClients.Sonarr;
 using Requestrr.WebApi.RequestrrBot.Locale;
 using Requestrr.WebApi.RequestrrBot.Movies;
 using Requestrr.WebApi.RequestrrBot.Music;
+using Requestrr.WebApi.RequestrrBot.Books;
 using Requestrr.WebApi.RequestrrBot.TvShows;
 using RadarrSettingsCategory = Requestrr.WebApi.Controllers.DownloadClients.Radarr.RadarrSettingsCategory;
 
@@ -27,6 +28,7 @@ namespace Requestrr.WebApi.Controllers.DownloadClients
         private readonly MoviesSettings _moviesSettings;
         private readonly TvShowsSettings _tvShowsSettings;
         private readonly MusicSettings _musicSettings;
+        private readonly BookSettings _bookSettings;
         private readonly DownloadClientsSettings _downloadClientsSettings;
         private readonly IHttpClientFactory _httpClientFactory;
 
@@ -35,11 +37,13 @@ namespace Requestrr.WebApi.Controllers.DownloadClients
             MoviesSettingsProvider moviesSettingsProvider,
             TvShowsSettingsProvider tvShowsSettingsProvider,
             MusicSettingsProvider musicSettingsProvider,
+            BookSettingsProvider bookSettingsProvider,
             DownloadClientsSettingsProvider downloadClientsSettingsProvider)
         {
             _moviesSettings = moviesSettingsProvider.Provide();
             _tvShowsSettings = tvShowsSettingsProvider.Provide();
             _musicSettings = musicSettingsProvider.Provide();
+            _bookSettings = bookSettingsProvider.Provide();
             _downloadClientsSettings = downloadClientsSettingsProvider.Provide();
             _httpClientFactory = httpClientFactory;
         }
@@ -48,10 +52,10 @@ namespace Requestrr.WebApi.Controllers.DownloadClients
         public async Task<IActionResult> GetAsync()
         {
             List<string> otherCategories = new List<string>();
-            switch(_tvShowsSettings.Client)
+            switch (_tvShowsSettings.Client)
             {
                 case "Sonarr":
-                    foreach(SonarrCategory category in _downloadClientsSettings.Sonarr.Categories)
+                    foreach (SonarrCategory category in _downloadClientsSettings.Sonarr.Categories)
                     {
                         otherCategories.Add(category.Name.ToLower());
                     }
@@ -61,7 +65,7 @@ namespace Requestrr.WebApi.Controllers.DownloadClients
                     {
                         otherCategories.Add(category.Name.ToLower());
                     }
-                    if(otherCategories.Count == 0)
+                    if (otherCategories.Count == 0)
                         otherCategories.Add(Language.Current.DiscordCommandTvRequestTitleName.ToLower());
                     break;
                 case "Ombi":
@@ -69,7 +73,7 @@ namespace Requestrr.WebApi.Controllers.DownloadClients
                     break;
             }
 
-            switch(_musicSettings.Client)
+            switch (_musicSettings.Client)
             {
                 case "Lidarr":
                     foreach (LidarrCategory category in _downloadClientsSettings.Lidarr.Categories)
@@ -79,6 +83,15 @@ namespace Requestrr.WebApi.Controllers.DownloadClients
                     break;
             }
 
+            switch (_bookSettings.Client)
+            {
+                case "Readarr":
+                    foreach (RequestrrBot.DownloadClients.Readarr.ReadarrCategory category in _downloadClientsSettings.Readarr.Categories)
+                    {
+                        otherCategories.Add(category.Name.ToLower());
+                    }
+                    break;
+            }
 
             return Ok(new MovieSettingsModel
             {

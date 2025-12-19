@@ -345,6 +345,25 @@ namespace Requestrr.WebApi.RequestrrBot
             {
                 _logger.LogError(ex, "Error while starting music notification engine: " + ex.Message);
             }
+
+            try
+            {
+                if (_bookNotificationEngine != null)
+                {
+                    await _bookNotificationEngine.StopAsync();
+                }
+
+                if (_currentSettings.BookDownloadClient != DownloadClient.Disabled && _currentSettings.NotificationMode != NotificationMode.Disabled)
+                {
+                    _bookNotificationEngine = _bookWorkflowFactory.CreateBookNotificationEngine(_client, _logger);
+                }
+
+                _bookNotificationEngine?.Start();
+            }
+            catch (System.Exception ex)
+            {
+                _logger.LogError(ex, "Error while starting book notification engine: " + ex.Message);
+            }
         }
 
 

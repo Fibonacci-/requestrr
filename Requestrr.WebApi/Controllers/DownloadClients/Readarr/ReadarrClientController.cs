@@ -55,7 +55,7 @@ namespace Requestrr.WebApi.Controllers.DownloadClients.Readarr
             }
             catch (Exception)
             {
-                return BadRequest("Could not load the paths form Readarr, check your settings.");
+                return BadRequest($"Could not load the paths from Readarr, check your settings.");
             }
         }
 
@@ -73,7 +73,7 @@ namespace Requestrr.WebApi.Controllers.DownloadClients.Readarr
             }
             catch (Exception)
             {
-                return BadRequest("Could not load profiles from Readarr, check your settings.");
+                return BadRequest($"Could not load the profiles from Readarr, check your settings.");
             }
         }
 
@@ -91,7 +91,7 @@ namespace Requestrr.WebApi.Controllers.DownloadClients.Readarr
             }
             catch (Exception)
             {
-                return BadRequest("Could not load metadata profiles from Readarr, check your settings.");
+                return BadRequest($"Could not load metadata profiles from Readarr, check your settings.");
             }
         }
 
@@ -109,39 +109,50 @@ namespace Requestrr.WebApi.Controllers.DownloadClients.Readarr
             }
             catch (Exception)
             {
-                return BadRequest("Could not load tags from Readarr, check your settings.");
+                return BadRequest($"Could not load the tags from Readarr, check your settings.");
             }
         }
 
         [HttpPost()]
-        public IActionResult Save([FromBody] ReadarrSettingsModel model)
+        public async Task<IActionResult> SaveAsync([FromBody] SaveReadarrSettingsModel model)
         {
-            BookSettings bookSettings = new BookSettings
+            var bookSettings = new BookSettings
             {
                 Client = DownloadClient.Readarr
             };
 
             if (!model.Categories.Any())
-                return BadRequest("At least one category is required.");
+            {
+                return BadRequest($"At least one category is required.");
+            }
 
             if (model.Categories.Any(x => string.IsNullOrWhiteSpace(x.Name)))
-                return BadRequest("A category name is required");
+            {
+                return BadRequest($"A category name is required.");
+            }
 
             foreach (var category in model.Categories)
             {
                 category.Name = category.Name.Trim();
+                category.Tags = category.Tags;
             }
 
             if (new HashSet<string>(model.Categories.Select(x => x.Name.ToLower())).Count != model.Categories.Length)
-                return BadRequest("All categories must have different names.");
+            {
+                return BadRequest($"All categories must have different names.");
+            }
 
             if (new HashSet<int>(model.Categories.Select(x => x.Id)).Count != model.Categories.Length)
-                return BadRequest("All categories must have different ids.");
+            {
+                return BadRequest($"All categories must have different ids.");
+            }
 
             if (model.Categories.Any(x => !Regex.IsMatch(x.Name, @"^[\w-]{1,32}$")))
-                return BadRequest("Invalid categorie names, make sure they only contain alphanumeric characters, dashes and underscores. (No spaces, etc)");
+            {
+                return BadRequest($"Invalid category names, make sure they only contain alphanumeric characters, dashes and underscores. (No spaces, etc)");
+            }
 
-            ReadarrSettingsModel readarrSettings = new ReadarrSettingsModel
+            var readarrSettings = new ReadarrSettingsModel
             {
                 Hostname = model.Hostname.Trim(),
                 ApiKey = model.ApiKey.Trim(),

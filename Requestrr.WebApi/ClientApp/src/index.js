@@ -39,7 +39,7 @@ import OverseerrClients from './store/reducers/OverseerrClientsReducer';
 import TvShowsClients from './store/reducers/TvShowsClientsReducer';
 import LidarrClients from "./store/reducers/LidarrClientsReducer.jsx";
 import MusicClients from "./store/reducers/MusicClientsReducer.jsx";
-import ReadarrClients from "./store/reducers/ReadarrClientsReducer";
+import ReadarrClients from "./store/reducers/ReadarrClientsReducer.jsx";
 import BookClients from "./store/reducers/BookClientsReducer";
 
 function combinedMovieClientsReducer(state = {}, action) {

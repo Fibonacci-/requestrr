@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Requestrr.WebApi.config;
 using Requestrr.WebApi.Controllers.DownloadClients.Lidarr;
@@ -8,7 +8,9 @@ using Requestrr.WebApi.RequestrrBot.DownloadClients.Sonarr;
 using Requestrr.WebApi.RequestrrBot.Locale;
 using Requestrr.WebApi.RequestrrBot.Movies;
 using Requestrr.WebApi.RequestrrBot.Music;
+using Requestrr.WebApi.RequestrrBot.Books;
 using Requestrr.WebApi.RequestrrBot.TvShows;
+using Requestrr.WebApi.RequestrrBot.DownloadClients.Readarr;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -24,6 +26,7 @@ namespace Requestrr.WebApi.Controllers.DownloadClients
         private readonly MusicSettings _musicSettings;
         private readonly MoviesSettings _moviesSettings;
         private readonly TvShowsSettings _tvShowsSettings;
+        private readonly BookSettings _bookSettings;
         private readonly DownloadClientsSettings _downloadClientsSettings;
         private readonly IHttpClientFactory _httpClientFactory;
 
@@ -32,12 +35,14 @@ namespace Requestrr.WebApi.Controllers.DownloadClients
             MusicSettingsProvider musicSettingsProvider,
             MoviesSettingsProvider moviesSettingsProvider,
             TvShowsSettingsProvider tvShowsSettingsProvider,
-            DownloadClientsSettingsProvider downloadClientsSettingsProvider )
+            BookSettingsProvider bookSettingsProvider,
+            DownloadClientsSettingsProvider downloadClientsSettingsProvider)
         {
             _httpClientFactory = httpClientFactory;
             _musicSettings = musicSettingsProvider.Provide();
             _moviesSettings = moviesSettingsProvider.Provide();
             _tvShowsSettings = tvShowsSettingsProvider.Provide();
+            _bookSettings = bookSettingsProvider.Provide();
             _downloadClientsSettings = downloadClientsSettingsProvider.Provide();
         }
 
@@ -85,6 +90,16 @@ namespace Requestrr.WebApi.Controllers.DownloadClients
                     break;
                 case "Ombi":
                     otherCategories.Add(Language.Current.DiscordCommandTvRequestTitleName.ToLower());
+                    break;
+            }
+
+            switch (_bookSettings.Client)
+            {
+                case "Readarr":
+                    foreach (ReadarrCategory category in _downloadClientsSettings.Readarr.Categories)
+                    {
+                        otherCategories.Add(category.Name.ToLower());
+                    }
                     break;
             }
 

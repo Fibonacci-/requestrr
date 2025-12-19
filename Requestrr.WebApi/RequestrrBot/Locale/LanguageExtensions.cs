@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Net.NetworkInformation;
+using Requestrr.WebApi.RequestrrBot.Books;
 using Requestrr.WebApi.RequestrrBot.Movies;
 using Requestrr.WebApi.RequestrrBot.Music;
 using Requestrr.WebApi.RequestrrBot.TvShows;
@@ -55,6 +56,20 @@ namespace Requestrr.WebApi.RequestrrBot.Locale
             };
 
             string replaced = ReplaceTokens(text, musicReplacementTokens);
+            if (additionalTokenReplacements != null)
+                replaced = ReplaceTokens(text, additionalTokenReplacements);
+
+            return replaced;
+        }
+
+        public static string ReplaceTokens(this string text, Book book, Dictionary<string, string> additionalTokenReplacements = null)
+        {
+            Dictionary<string, string> bookReplacementTokens = new Dictionary<string, string>
+            {
+                { LanguageTokens.BookTitle, book.Title }
+            };
+
+            string replaced = ReplaceTokens(text, bookReplacementTokens);
             if (additionalTokenReplacements != null)
                 replaced = ReplaceTokens(text, additionalTokenReplacements);
 

@@ -151,5 +151,19 @@
   "Discord.Embed.Music.Quality": "Quality",
   "Discord.Embed.Music.ListenNow": "Listen now",
   "Discord.Notification.Music.Artist.Channel": "Music from **[MusicArtistName]** has started downloading!",
-  "Discord.Notification.Music.Artist.DM": "Music from **[MusicArtistName]** has started downloading!"
+  "Discord.Notification.Music.Artist.DM": "Music from **[MusicArtistName]** has started downloading!",
+  "Discord.Command.Book.Request.Title.Name": "book",
+  "Discord.Command.Book.Request.Title.Description": "Request a book by title",
+  "Discord.Command.Book.Request.Title.Option.Name": "title",
+  "Discord.Command.Book.Request.Title.Option.Description": "title of the book",
+  "Discord.Command.Book.Request.Help": "Please select a book from the list below",
+  "Discord.Command.Book.Request.Help.Dropdown": "Select a book here",
+  "Discord.Command.Book.NotFound": "I could not find any book with the name \"[BookTitle]\", please try something different.",
+  "Discord.Command.Book.AlreadyRequested": "The book **[BookTitle]** has already been requested.",
+  "Discord.Command.Book.Unavailable": "The book **[BookTitle]** is not available.",
+  "Discord.Command.Book.Request.Confirm": "If you want to request this book, please click on the request button directly under this message.",
+  "Discord.Embed.Book.Author": "Author",
+  "Discord.Embed.Book.NoDescription": "No description available.",
+  "Discord.Notification.Book.Channel": "The book **[BookTitle]** has finished downloading!",
+  "Discord.Notification.Book.DM": "The book **[BookTitle]** you requested has finished downloading!"
 }
