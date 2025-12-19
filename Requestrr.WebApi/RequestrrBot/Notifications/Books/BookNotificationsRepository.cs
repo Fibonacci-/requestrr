@@ -36,7 +36,16 @@ namespace Requestrr.WebApi.RequestrrBot.Notifications.Books
 
         public BookNotificationsRepository()
         {
-            foreach (var notification in NotificationsFile.Read().Books)
+            var notifications = NotificationsFile.Read();
+            var books = notifications?.Books;
+
+            if (books == null)
+            {
+                NotificationsFile.WriteBook(new System.Collections.Generic.Dictionary<string, string[]>());
+                return;
+            }
+
+            foreach (var notification in books)
             {
                 foreach (var bookId in notification.BookId)
                 {
