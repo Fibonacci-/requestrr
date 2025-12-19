@@ -29,15 +29,24 @@ namespace Requestrr.WebApi.RequestrrBot.ChatClients.Discord
 
         public override bool Equals(object obj)
         {
-            return obj is DiscordSettings settings &&
-                   BotToken == settings.BotToken &&
+            if (!(obj is DiscordSettings settings))
+                return false;
+
+            bool ArraysEqual(string name, string[] a, string[] b)
+            {
+                if (a == null || b == null)
+                    throw new ArgumentNullException(name + $" null: left={(a==null)}, right={(b==null)}");
+                return a.SequenceEqual(b);
+            }
+
+            return BotToken == settings.BotToken &&
                    ClientID == settings.ClientID &&
                    StatusMessage == settings.StatusMessage &&
-                   MonitoredChannels.SequenceEqual(settings.MonitoredChannels) &&
-                   TvShowRoles.SequenceEqual(settings.TvShowRoles) &&
-                   MovieRoles.SequenceEqual(settings.MovieRoles) &&
-                   MusicRoles.SequenceEqual(settings.MusicRoles) &&
-                   BookRoles.SequenceEqual(settings.BookRoles) &&
+                   ArraysEqual("MonitoredChannels", MonitoredChannels, settings.MonitoredChannels) &&
+                   ArraysEqual("TvShowRoles", TvShowRoles, settings.TvShowRoles) &&
+                   ArraysEqual("MovieRoles", MovieRoles, settings.MovieRoles) &&
+                   ArraysEqual("MusicRoles", MusicRoles, settings.MusicRoles) &&
+                   ArraysEqual("BookRoles", BookRoles, settings.BookRoles) &&
                    MovieDownloadClient == settings.MovieDownloadClient &&
                    MovieDownloadClientConfigurationHash == settings.MovieDownloadClientConfigurationHash &&
                    TvShowDownloadClient == settings.TvShowDownloadClient &&
@@ -49,7 +58,7 @@ namespace Requestrr.WebApi.RequestrrBot.ChatClients.Discord
                    EnableRequestsThroughDirectMessages == settings.EnableRequestsThroughDirectMessages &&
                    AutomaticallyNotifyRequesters == settings.AutomaticallyNotifyRequesters &&
                    NotificationMode == settings.NotificationMode &&
-                   NotificationChannels.SequenceEqual(settings.NotificationChannels) &&
+                   ArraysEqual("NotificationChannels", NotificationChannels, settings.NotificationChannels) &&
                    AutomaticallyPurgeCommandMessages == settings.AutomaticallyPurgeCommandMessages;
         }
 

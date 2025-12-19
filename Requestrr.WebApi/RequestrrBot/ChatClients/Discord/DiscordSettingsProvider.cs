@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using Requestrr.WebApi.RequestrrBot.DownloadClients;
@@ -6,6 +6,7 @@ using Requestrr.WebApi.RequestrrBot.DownloadClients.Lidarr;
 using Requestrr.WebApi.RequestrrBot.DownloadClients.Ombi;
 using Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr;
 using Requestrr.WebApi.RequestrrBot.DownloadClients.Radarr;
+using Requestrr.WebApi.RequestrrBot.DownloadClients.Readarr;
 using Requestrr.WebApi.RequestrrBot.DownloadClients.Sonarr;
 using Requestrr.WebApi.RequestrrBot.Extensions;
 
@@ -26,11 +27,14 @@ namespace Requestrr.WebApi.RequestrrBot.ChatClients.Discord
                 TvShowDownloadClientConfigurationHash = ComputeTvClientConfigurationHashCode(settings),
                 MusicDownloadClient = settings.Music.Client,
                 MusicDownloadClientConfigurationHash = ComputeMusicClientConfigurationHashCode(settings),
+                BookDownloadClient = settings.Books.Client,
+                BookDownloadClientConfigurationHash = ComputeBookClientConfigurationHashCode(settings),
                 StatusMessage = settings.ChatClients.Discord.StatusMessage,
                 MonitoredChannels = settings.ChatClients.Discord.MonitoredChannels.ToObject<string[]>(),
                 TvShowRoles = settings.ChatClients.Discord.TvShowRoles.ToObject<string[]>(),
                 MovieRoles = settings.ChatClients.Discord.MovieRoles.ToObject<string[]>(),
                 MusicRoles = settings.ChatClients.Discord.MusicRoles.ToObject<string[]>(),
+                BookRoles = settings.ChatClients.Discord.BookRoles.ToObject<string[]>(),
                 ClientID = settings.ChatClients.Discord.ClientId,
                 EnableRequestsThroughDirectMessages = settings.ChatClients.Discord.EnableRequestsThroughDirectMessages,
                 AutomaticallyNotifyRequesters = settings.ChatClients.Discord.AutomaticallyNotifyRequesters,
@@ -147,6 +151,29 @@ namespace Requestrr.WebApi.RequestrrBot.ChatClients.Discord
                 hash.Add(clientSettings.ApiKey);
                 hash.Add(clientSettings.UseSSL);
                 hash.Add(clientSettings.Version);
+            }
+
+            return hash.ToHashCode();
+        }
+
+        public int ComputeBookClientConfigurationHashCode(dynamic settings)
+        {
+            HashCode hash = new HashCode();
+
+            if (settings.Books.Client == DownloadClient.Readarr)
+            {
+                var clientSettings = new ReadarrSettingsProvider().Provide();
+
+                hash.Add(clientSettings.Categories.Select(x => x.Name).GetSequenceHashCode());
+                hash.Add(clientSettings.Hostname);
+                hash.Add(clientSettings.Port);
+                hash.Add(clientSettings.ApiKey);
+                hash.Add(clientSettings.UseSSL);
+                hash.Add(clientSettings.Version);
+            }
+            else
+            {
+                hash.Add(DownloadClient.Disabled);
             }
 
             return hash.ToHashCode();
