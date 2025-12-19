@@ -21,6 +21,7 @@ import ChatClients from "./views/ChatClients.jsx";
 import Movies from "./views/Movies.jsx";
 import TvShows from "./views/TvShows.jsx";
 import Music from "./views/Music.jsx"
+import Books from "./views/Books.jsx"
 import Register from "./views/Register.jsx";
 import Login from "./views/Login.jsx";
 import Logout from "./views/Logout.jsx";
@@ -30,7 +31,7 @@ var routes = [
     path: "/chatclients",
     name: "Chat clients",
     icon: "fas big fa-comments text-purple",
-    component: <ChatClients/>,
+    component: <ChatClients />,
     layout: "/admin",
     supportsAnonymousUser: true
   },
@@ -38,7 +39,7 @@ var routes = [
     path: "/movies",
     name: "Movies",
     icon: "fas big fa-film text-orange",
-    component: <Movies/>,
+    component: <Movies />,
     layout: "/admin",
     supportsAnonymousUser: true
   },
@@ -46,7 +47,7 @@ var routes = [
     path: "/tvshows",
     name: "TV Shows",
     icon: "fas fa-tv text-blue",
-    component: <TvShows/>,
+    component: <TvShows />,
     layout: "/admin",
     supportsAnonymousUser: true
   },
@@ -54,7 +55,15 @@ var routes = [
     path: "/music",
     name: "Music",
     icon: "fas fa-music text-yellow",
-    component: <Music/>,
+    component: <Music />,
+    layout: "/admin",
+    supportsAnonymousUser: true
+  },
+  {
+    path: "/books",
+    name: "Books",
+    icon: "fas fa-book text-pink",
+    component: <Books />,
     layout: "/admin",
     supportsAnonymousUser: true
   },
@@ -62,7 +71,7 @@ var routes = [
     path: "/account",
     name: "Account",
     icon: "fas big fa-user-shield text-green",
-    component: <Account/>,
+    component: <Account />,
     layout: "/admin",
     supportsAnonymousUser: false
   },
@@ -70,7 +79,7 @@ var routes = [
     path: "/settings",
     name: "Settings",
     icon: "fas big fa-toolbox text-gray",
-    component: <Settings/>,
+    component: <Settings />,
     layout: "/admin",
     supportsAnonymousUser: true
   },
@@ -78,7 +87,7 @@ var routes = [
     path: "/login",
     name: "Login",
     icon: "ni ni-user-run text-info",
-    component: <Login/>,
+    component: <Login />,
     layout: "/auth",
     supportsAnonymousUser: true
   },
@@ -86,7 +95,7 @@ var routes = [
     path: "/register",
     name: "Register",
     icon: "ni ni-single-02 text-orange",
-    component: <Register/>,
+    component: <Register />,
     layout: "/auth",
     supportsAnonymousUser: true
   },
@@ -94,7 +103,7 @@ var routes = [
     path: "/logout",
     name: "Logout",
     icon: "fas big fa-sign-out-alt text-info",
-    component: <Logout/>,
+    component: <Logout />,
     layout: "/admin",
     supportsAnonymousUser: false
   },

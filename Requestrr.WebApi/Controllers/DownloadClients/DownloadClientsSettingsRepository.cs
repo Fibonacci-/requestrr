@@ -3,6 +3,8 @@ using System.Linq;
 using System.Runtime;
 using Newtonsoft.Json.Linq;
 using Requestrr.WebApi.Controllers.DownloadClients.Lidarr;
+using Requestrr.WebApi.Controllers.DownloadClients.Readarr;
+using Requestrr.WebApi.RequestrrBot.DownloadClients.Readarr;
 using Requestrr.WebApi.Controllers.DownloadClients.Ombi;
 using Requestrr.WebApi.Controllers.DownloadClients.Overseerr;
 using Requestrr.WebApi.Controllers.DownloadClients.Radarr;
@@ -13,6 +15,7 @@ using Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr;
 using Requestrr.WebApi.RequestrrBot.DownloadClients.Radarr;
 using Requestrr.WebApi.RequestrrBot.DownloadClients.Sonarr;
 using Requestrr.WebApi.RequestrrBot.Movies;
+using Requestrr.WebApi.RequestrrBot.Books;
 using Requestrr.WebApi.RequestrrBot.Music;
 using Requestrr.WebApi.RequestrrBot.TvShows;
 
@@ -40,6 +43,15 @@ namespace Requestrr.WebApi.Controllers.DownloadClients
             {
                 NotificationsFile.ClearAllMovieNotifications();
                 settings.Movies.Client = movieSettings.Client;
+            });
+        }
+
+        public static void SetDisabledClient(BookSettings bookSettings)
+        {
+            SettingsFile.Write(settings =>
+            {
+                NotificationsFile.ClearAllBookNotifications();
+                settings.Books.Client = bookSettings.Client;
             });
         }
 
@@ -138,6 +150,50 @@ namespace Requestrr.WebApi.Controllers.DownloadClients
         }
 
 
+        /// <summary>
+        /// Handles the saving of new Readarr settings
+        /// </summary>
+        /// <param name="bookSettings"></param>
+        /// <param name="readarrSettings"></param>
+        public static void SetBook(BookSettings bookSettings, ReadarrSettingsModel readarrSettings)
+        {
+            SettingsFile.Write(settings =>
+            {
+                settings.DownloadClients.Readarr.Hostname = readarrSettings.Hostname;
+                settings.DownloadClients.Readarr.Port = readarrSettings.Port;
+                settings.DownloadClients.Readarr.ApiKey = readarrSettings.ApiKey;
+                settings.DownloadClients.Readarr.BaseUrl = readarrSettings.BaseUrl;
+
+                settings.DownloadClients.Readarr.Categories = JToken.FromObject(readarrSettings.Categories.Select(x => new ReadarrCategory
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    ProfileId = x.ProfileId,
+                    MetadataProfileId = x.MetadataProfileId,
+                    RootFolder = x.RootFolder,
+                    Tags = x.Tags
+                }).ToArray());
+
+                settings.DownloadClients.Readarr.SearchNewRequests = readarrSettings.SearchNewRequests;
+                settings.DownloadClients.Readarr.MonitorNewRequests = readarrSettings.MonitorNewRequests;
+
+                settings.DownloadClients.Readarr.UseSSL = readarrSettings.UseSSL;
+                settings.DownloadClients.Readarr.Version = readarrSettings.Version;
+
+                if (settings.Books.Client != bookSettings.Client)
+                {
+                    NotificationsFile.ClearAllBookNotifications();
+                }
+
+                SetBookSettings(new BookSettings { Client = bookSettings.Client }, settings);
+            });
+        }
+
+        private static void SetBookSettings(BookSettings bookSettings, dynamic settings)
+        {
+            settings.Books.Client = bookSettings.Client;
+        }
+
         public static void SetDisabledClient(TvShowsSettings tvShowsSettings)
         {
             SettingsFile.Write(settings =>
@@ -231,7 +287,7 @@ namespace Requestrr.WebApi.Controllers.DownloadClients
             settings.DownloadClients.Overseerr.Version = overseerrSettings.Version;
         }
 
-        private static void SetTvShowSettings(TvShowsSettings tvSettings, dynamic settings) 
+        private static void SetTvShowSettings(TvShowsSettings tvSettings, dynamic settings)
         {
             if (settings.TvShows.Client != tvSettings.Client)
             {
@@ -252,7 +308,7 @@ namespace Requestrr.WebApi.Controllers.DownloadClients
             settings.Movies.Client = movieSettings.Client;
         }
 
-        
+
         /// <summary>
         /// Handles the updating of the music client name in settings
         /// </summary>

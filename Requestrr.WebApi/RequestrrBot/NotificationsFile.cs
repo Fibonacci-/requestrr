@@ -145,5 +145,28 @@ namespace Requestrr.WebApi.RequestrrBot
                 _hasChanged = true;
             }
         }
+
+        public static void ClearAllBookNotifications()
+        {
+            lock (_lock)
+            {
+                _cachedNotifications.Books = JToken.FromObject(Array.Empty<int>());
+                _hasChanged = true;
+            }
+        }
+
+        public static void WriteBook(Dictionary<string, string[]> bookNotifications)
+        {
+            lock (_lock)
+            {
+                _cachedNotifications.Books = JToken.FromObject(bookNotifications.Select(x => new
+                {
+                    UserId = x.Key,
+                    BookId = x.Value
+                }).ToArray());
+
+                _hasChanged = true;
+            }
+        }
     }
 }

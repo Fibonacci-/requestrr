@@ -26,7 +26,10 @@ using Requestrr.WebApi.RequestrrBot.Notifications;
 using Requestrr.WebApi.RequestrrBot.Notifications.Movies;
 using Requestrr.WebApi.RequestrrBot.Notifications.Music;
 using Requestrr.WebApi.RequestrrBot.Notifications.TvShows;
+using Requestrr.WebApi.RequestrrBot.Notifications.Books;
 using Requestrr.WebApi.RequestrrBot.TvShows;
+using Requestrr.WebApi.RequestrrBot.Books;
+using Requestrr.WebApi.RequestrrBot.DownloadClients.Readarr;
 
 namespace Requestrr.WebApi.RequestrrBot
 {
@@ -36,6 +39,7 @@ namespace Requestrr.WebApi.RequestrrBot
         private MovieNotificationEngine _movieNotificationEngine;
         private TvShowNotificationEngine _tvShowNotificationEngine;
         private MusicNotificationEngine _musicNotificationEngine;
+        private BookNotificationEngine _bookNotificationEngine;
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<ChatBot> _logger;
         private readonly DiscordSettingsProvider _discordSettingsProvider;
@@ -44,14 +48,17 @@ namespace Requestrr.WebApi.RequestrrBot
         private MovieWorkflowFactory _movieWorkflowFactory;
         private TvShowWorkflowFactory _tvShowWorkflowFactory;
         private MusicWorkflowFactory _musicWorkflowFactory;
+        private BookWorkflowFactory _bookWorkflowFactory;
         private MovieNotificationsRepository _movieNotificationRepository = new MovieNotificationsRepository();
         private TvShowNotificationsRepository _tvShowNotificationRepository = new TvShowNotificationsRepository();
         private MusicNotificationsRepository _musicNotificationRepository = new MusicNotificationsRepository();
+        private BookNotificationsRepository _bookNotificationRepository = new BookNotificationsRepository();
         private OverseerrClient _overseerrClient;
         private OmbiClient _ombiDownloadClient;
         private RadarrClient _radarrDownloadClient;
         private SonarrClient _sonarrDownloadClient;
         private LidarrClient _lidarrDownloadClient;
+        private ReadarrClient _readarrDownloadClient;
         private SlashCommandsExtension _slashCommands = null;
         private HashSet<ulong> _currentGuilds = new HashSet<ulong>();
         private Language _previousLanguage = Language.Current;
@@ -67,9 +74,11 @@ namespace Requestrr.WebApi.RequestrrBot
             _radarrDownloadClient = new RadarrClient(serviceProvider.Get<IHttpClientFactory>(), serviceProvider.Get<ILogger<RadarrClient>>(), serviceProvider.Get<RadarrSettingsProvider>());
             _sonarrDownloadClient = new SonarrClient(serviceProvider.Get<IHttpClientFactory>(), serviceProvider.Get<ILogger<SonarrClient>>(), serviceProvider.Get<SonarrSettingsProvider>());
             _lidarrDownloadClient = new LidarrClient(serviceProvider.Get<IHttpClientFactory>(), serviceProvider.Get<ILogger<LidarrClient>>(), serviceProvider.Get<LidarrSettingsProvider>());
+            _readarrDownloadClient = new ReadarrClient(serviceProvider.Get<IHttpClientFactory>(), serviceProvider.Get<ILogger<ReadarrClient>>(), serviceProvider.Get<ReadarrSettingsProvider>());
             _movieWorkflowFactory = new MovieWorkflowFactory(_discordSettingsProvider, _movieNotificationRepository, _overseerrClient, _ombiDownloadClient, _radarrDownloadClient);
             _tvShowWorkflowFactory = new TvShowWorkflowFactory(serviceProvider.Get<TvShowsSettingsProvider>(), _discordSettingsProvider, _tvShowNotificationRepository, _overseerrClient, _ombiDownloadClient, _sonarrDownloadClient);
             _musicWorkflowFactory = new MusicWorkflowFactory(_discordSettingsProvider, _musicNotificationRepository, _lidarrDownloadClient);
+            _bookWorkflowFactory = new BookWorkflowFactory(_discordSettingsProvider, _bookNotificationRepository, _readarrDownloadClient);
         }
 
         public async void Start()
@@ -114,7 +123,7 @@ namespace Requestrr.WebApi.RequestrrBot
                             SlashCommandBuilder.CleanUp();
 
                             //Delay till next restart
-                            if(_waitTimeout <= 0)
+                            if (_waitTimeout <= 0)
                                 _waitTimeout = 5;
                         }
                     }
@@ -175,6 +184,7 @@ namespace Requestrr.WebApi.RequestrrBot
                             .AddSingleton<MovieWorkflowFactory>(_movieWorkflowFactory)
                             .AddSingleton<TvShowWorkflowFactory>(_tvShowWorkflowFactory)
                             .AddSingleton<MusicWorkflowFactory>(_musicWorkflowFactory)
+                            .AddSingleton<BookWorkflowFactory>(_bookWorkflowFactory)
                             .BuildServiceProvider()
                     });
 
@@ -213,7 +223,7 @@ namespace Requestrr.WebApi.RequestrrBot
                             var prop = _slashCommands.GetType().GetProperty("_updateList", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                             prop.SetValue(_slashCommands, new List<KeyValuePair<ulong?, Type>>());
 
-                            var slashCommandType = SlashCommandBuilder.Build(_logger, newSettings, _serviceProvider.Get<RadarrSettingsProvider>(), _serviceProvider.Get<SonarrSettingsProvider>(), _serviceProvider.Get<OverseerrSettingsProvider>(), _serviceProvider.Get<OmbiSettingsProvider>(), _serviceProvider.Get<LidarrSettingsProvider>());
+                            var slashCommandType = SlashCommandBuilder.Build(_logger, newSettings, _serviceProvider.Get<RadarrSettingsProvider>(), _serviceProvider.Get<SonarrSettingsProvider>(), _serviceProvider.Get<OverseerrSettingsProvider>(), _serviceProvider.Get<OmbiSettingsProvider>(), _serviceProvider.Get<LidarrSettingsProvider>(), _serviceProvider.Get<ReadarrSettingsProvider>());
 
                             if (newSettings.EnableRequestsThroughDirectMessages)
                             {
@@ -380,6 +390,10 @@ namespace Requestrr.WebApi.RequestrrBot
                     if (e.Id.ToLower().StartsWith("mr"))
                     {
                         await HandleMovieRequestAsync(e);
+                    }
+                    else if (e.Id.ToLower().StartsWith("br"))
+                    {
+                        await HandleBookRequestAsync(e);
                     }
                     else if (e.Id.ToLower().StartsWith("mir"))
                     {
@@ -639,6 +653,25 @@ namespace Requestrr.WebApi.RequestrrBot
             }
         }
 
+        private async Task HandleBookRequestAsync(ComponentInteractionCreateEventArgs e)
+        {
+            if (e.Id.ToLower().StartsWith("brs"))
+            {
+                if (e.Values != null && e.Values.Any())
+                {
+                    await CreateBookRequestWorkFlow(e, int.Parse(e.Values.Single().Split("/").First()))
+                        .HandleBookSelectionAsync(e.Values.Single().Split("/").Last());
+                }
+            }
+            else if (e.Id.ToLower().StartsWith("brc"))
+            {
+                var categoryId = int.Parse(e.Id.Split("/").Skip(2).First());
+
+                await CreateBookRequestWorkFlow(e, categoryId)
+                    .RequestBookAsync(e.Id.Split("/").Last());
+            }
+        }
+
 
 
         /// <summary>
@@ -650,6 +683,11 @@ namespace Requestrr.WebApi.RequestrrBot
         private MusicRequestingWorkflow CreateMusicRequestWorkFlow(ComponentInteractionCreateEventArgs e, int categoryId)
         {
             return _musicWorkflowFactory.CreateRequestingWorkflow(e.Interaction, categoryId);
+        }
+
+        private BookRequestingWorkflow CreateBookRequestWorkFlow(ComponentInteractionCreateEventArgs e, int categoryId)
+        {
+            return _bookWorkflowFactory.CreateRequestingWorkflow(e.Interaction, categoryId);
         }
 
 

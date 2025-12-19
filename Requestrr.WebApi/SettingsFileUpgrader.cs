@@ -8,6 +8,7 @@ using Requestrr.WebApi.RequestrrBot.DownloadClients.Lidarr;
 using Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr;
 using Requestrr.WebApi.RequestrrBot.DownloadClients.Radarr;
 using Requestrr.WebApi.RequestrrBot.DownloadClients.Sonarr;
+using Requestrr.WebApi.RequestrrBot.DownloadClients.Readarr;
 
 namespace Requestrr.WebApi
 {
@@ -296,6 +297,42 @@ namespace Requestrr.WebApi
                 ((JObject)settingsJson["DownloadClients"]).Add("Lidarr", JToken.FromObject(lidarrBlankSettings));
                 ((JObject)settingsJson).Add("Music", JToken.FromObject(musicClient));
                 ((JObject)settingsJson.ChatClients.Discord).Add("MusicRoles", JToken.FromObject(new List<string>()));
+                File.WriteAllText(settingsFilePath, JsonConvert.SerializeObject(settingsJson));
+            }
+            if (settingsJson.Version.ToString().Equals("2.1.3", StringComparison.InvariantCultureIgnoreCase))
+            {
+                settingsJson.Version = "2.1.4";
+
+                ReadarrSettings readarrBlankSettings = new ReadarrSettings
+                {
+                    Hostname = string.Empty,
+                    Port = 8787,
+                    ApiKey = string.Empty,
+                    BaseUrl = string.Empty,
+                    Categories = new ReadarrCategory[] {
+                        new ReadarrCategory {
+                            Id = 0,
+                            Name = "audiobook",
+                            ProfileId = 1,
+                            MetadataProfileId = 1,
+                            RootFolder = string.Empty,
+                            Tags = Array.Empty<int>(),
+                        }
+                    },
+                    SearchNewRequests = true,
+                    MonitorNewRequests = true,
+                    UseSSL = false,
+                    Version = "1"
+                };
+
+                var booksClient = new
+                {
+                    Client = "Disabled"
+                };
+
+                ((JObject)settingsJson["DownloadClients"]).Add("Readarr", JToken.FromObject(readarrBlankSettings));
+                ((JObject)settingsJson).Add("Books", JToken.FromObject(booksClient));
+                ((JObject)settingsJson.ChatClients.Discord).Add("BookRoles", JToken.FromObject(new List<string>()));
                 File.WriteAllText(settingsFilePath, JsonConvert.SerializeObject(settingsJson));
             }
         }
