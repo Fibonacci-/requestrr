@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Runtime;
 using Newtonsoft.Json.Linq;
@@ -191,6 +191,11 @@ namespace Requestrr.WebApi.Controllers.DownloadClients
 
         private static void SetBookSettings(BookSettings bookSettings, dynamic settings)
         {
+            if (settings.Books.Client != bookSettings.Client)
+            {
+                NotificationsFile.ClearAllBookNotifications();
+            }
+
             settings.Books.Client = bookSettings.Client;
         }
 

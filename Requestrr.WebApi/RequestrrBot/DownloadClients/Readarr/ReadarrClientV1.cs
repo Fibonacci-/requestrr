@@ -165,18 +165,26 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Readarr
 
         public async Task<IList<JSONBook>> SearchBookAsync(string searchTerm)
         {
+            string url = null;
             try
             {
                 string term = Uri.EscapeDataString(searchTerm.Trim());
-                HttpResponseMessage response = await HttpGetAsync($"{BaseURL}/book/lookup?term={term}");
-                await response.ThrowIfNotSuccessfulAsync("ReadarrBookLookup failed", x => x.error);
+                url = $"{BaseURL}/book/lookup?term={term}";
+                HttpResponseMessage response = await HttpGetAsync(url);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    string resp = await response.Content.ReadAsStringAsync();
+                    _logger.LogError("Readarr book lookup failed. URL: {Url}, StatusCode: {StatusCode}, Response: {Response}", url, (int)response.StatusCode, resp);
+                    throw new Exception($"ReadarrBookLookup failed: {response.ReasonPhrase} - {resp}");
+                }
 
                 string jsonResponse = await response.Content.ReadAsStringAsync();
                 return JsonConvert.DeserializeObject<List<JSONBook>>(jsonResponse);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred while searching for book with Readarr: " + ex.Message);
+                _logger.LogError(ex, $"An error occurred while searching for book with Readarr (url: {url}): {ex.Message}");
                 throw new Exception("An error occurred while searching for book with Readarr");
             }
         }
@@ -185,14 +193,36 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Readarr
         {
             try
             {
+                // Support lookup token for foreign edition id: f-<foreignEditionId>
+                if (!string.IsNullOrWhiteSpace(bookId) && (bookId.StartsWith("f-") || bookId.StartsWith("f:")))
+                {
+                    var foreignId = bookId.Substring(2);
+                    string term = Uri.EscapeDataString(foreignId);
+                    HttpResponseMessage response = await HttpGetAsync($"{BaseURL}/book/lookup?term={term}");
+                    await response.ThrowIfNotSuccessfulAsync("ReadarrBookLookup failed", x => x.error);
+
+                    string jsonResponse = await response.Content.ReadAsStringAsync();
+                    var list = JsonConvert.DeserializeObject<List<JSONBook>>(jsonResponse);
+
+                    var match = list.FirstOrDefault(x => (!string.IsNullOrWhiteSpace(x.ForeignEditionId) && x.ForeignEditionId == foreignId)
+                                                         || (!string.IsNullOrWhiteSpace(x.ForeignBookId) && x.ForeignBookId == foreignId)
+                                                         || (!string.IsNullOrWhiteSpace(x.TitleSlug) && x.TitleSlug == foreignId));
+
+                    return match;
+                }
+
                 // If it's a numeric ID, we can get it directly
                 if (int.TryParse(bookId, out int id))
                 {
                     HttpResponseMessage response = await HttpGetAsync($"{BaseURL}/book/{id}");
-                    if (response.StatusCode == HttpStatusCode.NotFound) return null;
+                    if (response.StatusCode == HttpStatusCode.NotFound)
+                    {
+                        return null;
+                    }
 
                     string jsonResponse = await response.Content.ReadAsStringAsync();
-                    return JsonConvert.DeserializeObject<JSONBook>(jsonResponse);
+                    var book = JsonConvert.DeserializeObject<JSONBook>(jsonResponse);
+                    return book;
                 }
 
                 return null;

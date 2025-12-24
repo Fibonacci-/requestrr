@@ -54,6 +54,12 @@ namespace Requestrr.WebApi.RequestrrBot.Books
         {
             var book = await _searcher.GetBookDetailsAsync(new BookRequest(_user, _categoryId), bookId);
 
+            if (book == null)
+            {
+                await _userInterface.WarnNoBookFoundAsync(bookId);
+                return;
+            }
+
             if (book.IsMonitored)
             {
                 await _userInterface.WarnBookAlreadyRequestedAsync(book);

@@ -102,7 +102,7 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Readarr
                 Title = jsonBook.Title,
                 Author = jsonBook.Author?.AuthorName ?? jsonBook.AuthorTitle,
                 ReadarrId = jsonBook.Id.ToString(),
-                ForeignBookId = jsonBook.ForeignBookId, // Goodreads ID?
+                ForeignBookId = !string.IsNullOrWhiteSpace(jsonBook.ForeignEditionId) ? jsonBook.ForeignEditionId : jsonBook.ForeignBookId, // Prefer edition id if present
                 Isbn = jsonBook.Isbn,
                 CoverUrl = jsonBook.Images?.FirstOrDefault(x => x.CoverType == "cover")?.RemoteUrl
                            ?? jsonBook.Images?.FirstOrDefault(x => x.CoverType == "cover")?.Url,
@@ -118,9 +118,11 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Readarr
             public int Id { get; set; }
             public string Title { get; set; }
             public string AuthorTitle { get; set; }
+            public string TitleSlug { get; set; }
             public string Overview { get; set; }
             public string Isbn { get; set; }
             public string ForeignBookId { get; set; }
+            public string ForeignEditionId { get; set; }
             public bool Monitored { get; set; }
             public int AuthorId { get; set; }
             public JSONAuthor Author { get; set; }

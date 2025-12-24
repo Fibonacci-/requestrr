@@ -10,6 +10,7 @@ using Requestrr.WebApi.RequestrrBot.ChatClients.Discord;
 using Requestrr.WebApi.RequestrrBot.Movies;
 using Requestrr.WebApi.RequestrrBot.TvShows;
 using Requestrr.WebApi.RequestrrBot.Music;
+using Requestrr.WebApi.RequestrrBot.Books;
 using Requestrr.WebApi.RequestrrBot.Locale;
 using System.Collections.Generic;
 
